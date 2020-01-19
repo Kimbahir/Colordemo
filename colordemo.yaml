@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: colordemo
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: colordemo
+  template:
+    metadata:
+      labels:
+        app: colordemo
+    spec:
+      containers:
+      - name: colordemo
+        image: kimbahir/colordemo:v1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: colordemo 
+  namespace: default
+spec:
+  ports:
+  - name: http
+    targetPort: 80
+    port: 80
+  selector:
+    app: colordemo
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: colordemo
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+
+spec:
+  rules:
+  - host: colordemo 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: colordemo
+          servicePort: http
