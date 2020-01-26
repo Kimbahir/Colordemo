@@ -39,7 +39,7 @@ metadata:
 
 spec:
   rules:
-  - host: colordemo 
+  - host: colordemo.bahir.dk 
     http:
       paths:
       - path: /
