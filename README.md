@@ -1,5 +1,7 @@
 # Colordemo
 
+[![Build Status](https://travis-ci.com/Kimbahir/Colordemo.svg?branch=master)](https://travis-ci.com/Kimbahir/Colordemo) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Simple Python Flask app, packaged as a container, refreshing showing a color and the OS name
 
 ## Extended purpose
