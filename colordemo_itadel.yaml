@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kba-colordemo
+  name: kba-colordemo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kba-colordemo
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kba-colordemo
+    spec:
+      serviceAccountName: kba
+      containers:
+      - name: colordemo
+        image: kimbahir/colordemo:v10
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "250m"
+          requests:
+            memory: "100Mi"
+            cpu: "100m"
+# if resources not presented :
+#     Error creating: pods "kba-nginx-5d9b8d8dd5-d626g" is forbidden: failed quota: kba: must specify limits.cpu,limits.memory,requests.cpu,requests.memory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kba-colordemo
+  name: kba-colordemo
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: kba-colordemo
+status:
+  loadBalancer: {}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: vpn-ipwhitelist
+spec:
+  ipWhiteList:
+    sourceRange:
+      - 62.243.72.144/32 #techide vpn opa
+      - 92.43.120.194/32 #techide vpn gkl
+      - 62.243.72.146/32 #techide vpn opa2
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: kba-colordemo
+spec:
+  commonName: kba-colordemo.itdprod.k8s.yacn.dk
+  secretName: kba-colordemo-letsencrypt
+  dnsNames:
+    - kba-colordemo.itdprod.k8s.yacn.dk
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kba-colordemo-https
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: Host(`kba-colordemo.itdprod.k8s.yacn.dk`) && PathPrefix(`/`)
+    kind: Rule
+    priority: 1
+    middlewares:
+    - name: vpn-ipwhitelist
+    services:
+    - name: kba-colordemo
+      port: 80
+  tls:
+    secretName: kba-colordemo-letsencrypt
